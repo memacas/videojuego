@@ -26,6 +26,13 @@ body{
   width: 100%;
 }
 
+.main-titulo-chg{
+  font-family: gameFont;
+  font-size: 3em;
+  width: 100%;
+  color: white;
+}
+
 .panel-tablero{
   width: 70%;
   border: 10px solid #E87306;
@@ -97,6 +104,15 @@ div[class^='col']{
   justify-content: flex-end;
   align-items: center;
 
+}
+
+div[class^='col-'] div.dulce {
+    float: left;
+}
+
+div[class^='col-'] div.dulce>img{
+  width: 86%;
+  cursor: pointer;
 }
 
 .elemento{
