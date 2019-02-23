@@ -110,7 +110,7 @@ div[class^='col-'] div.dulce {
     float: left;
 }
 
-div[class^='col-'] div.dulce>img{
+div.dulce>img{
   width: 86%;
   cursor: pointer;
 }
