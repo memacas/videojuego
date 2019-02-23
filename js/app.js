@@ -5,12 +5,14 @@ var tableroEliminar = {}; //Se almacenan los dulces en una matriz que se elimina
 var xIni, yIni; //Posicion fila/columna de cada dulce
 var dulces = [1,2,3,4]; //Los diferentes dulces que hay
 var nDistancia = {1: 114, 2:90, 3: 97, 4: 100, 5: 100} //Distancia entre cada fila para la animacion de la lluvia de dulces
-var duracionAnimLluvia = 100;
-var pulsateEliminar = 300;
-var fadeOutEliminar = 300;
-var puntosDulce = 100;
-var jugar = false;
-var interval_timer;
+var duracionAnimLluvia = 100; //Duracion de la caida de la lluvia de dulce
+var pulsateEliminar = 300; //Duracion de efecto de pulsate al senalar dulces a eliminar
+var fadeOutEliminar = 300; //Duracion de efecto fade para eliminar los dulces
+var puntosDulce = 100; //Puntos de cada dulce
+var jugar = false; //Juego corriendo
+var interval_timer;//Variable para el timer
+
+
 //Cambia el color del titulo con animacion
 function cambiarColorTitulo(){
   var claseActual = "main-titulo"
@@ -25,11 +27,14 @@ function cambiarColorTitulo(){
 }
 
 
+//Detiene TODOS los timeouts
 function stopAllTimeouts(){
     var id = window.setTimeout(null,0);
     while (id--) window.clearTimeout(id);
 }
 
+
+//Al finalizar el tiempo de juego
 function gameOver(){
   stopAllTimeouts();
   clearInterval(interval_timer);
@@ -38,9 +43,8 @@ function gameOver(){
   $('#titulo_score').show();
   $('#titulo_score').css({'text-align': 'center'})
   $('.panel-score').animate({width: '100%'}, 1000);
-
 }
-$('#titulo_score').hide();
+
 
 //Crear tablero (matriz) inicial de dulces (solo para datos)
 function crearMatrizInicial(){
@@ -53,9 +57,8 @@ function crearMatrizInicial(){
   }
 }
 
-
+//Al cargar toda la pagina
 $(function(){
-
 
   //Funcion que inicializa el Grag & Drop para la clase dulce
   function dragDrop(){
@@ -155,12 +158,7 @@ $(function(){
                      //Se reordena el tablero principal con las nuevas coordenadas del movimiento
                      tablero[dulceReemplazadoCopy.attr('x')-1][dulceReemplazadoCopy.attr('y')-1] = parseInt(dulceReemplazadoCopy.attr('valor'));
                      tablero[dulceMovidoCopy.attr('x')-1][dulceMovidoCopy.attr('y')-1] = parseInt(dulceMovidoCopy.attr('valor'));
-                     //console.log('recorrer')
-                     //console.log(tablero);
-
-                     //tiempoEnCorrerRecorrer = (duracionAnimLluvia * $('.dulce[nuevos]').length) + pulsateEliminar + fadeOutEliminar;
-                     //setTimeout(function(){console.log("se recorre nuevamente");recorrer();},tiempoEnCorrerRecorrer)
-
+                     //Recorre todo el tablero para eliminar dulces
                      recorrer();
                    }
             },
@@ -171,6 +169,7 @@ $(function(){
 
 
   $(".btn-reinicio").on("click", function(){
+    //Si previamente se ha iniciado el juego entraria a reiniciarlo
     if ($(this).hasClass('reiniciar')){
       stopAllTimeouts();
       clearInterval(interval_timer);
@@ -178,7 +177,8 @@ $(function(){
       $('#score-text').text(0);
       $('#movimientos-text').text(0);
       $('#timer').text('02:00');
-      $('div.dulce').fadeOut(0).promise().done(function(){
+      //Limpia el tablero y lo llena nuevamente
+      $('div.dulce').fadeOut(fadeOutEliminar).promise().done(function(){
         $('div.dulce').remove();
         tablero = new Array(nCols);
         crearMatrizInicial();
@@ -187,15 +187,15 @@ $(function(){
         $(".btn-reinicio").text('Iniciar');
         $(".btn-reinicio").removeClass('reiniciar');
       });
-    }else{//Inicio normal
-      timer();
-      tiempoEnCorrerRecorrer = 0;
-      jugar = true;
-      setTimeout(function(){recorrer();},tiempoEnCorrerRecorrer)
-      $(this).text('Reiniciar');
-      $(this).addClass('reiniciar');
-    }
-  });
+      }else{//Inicio normal
+        timer();
+        tiempoEnCorrerRecorrer = 0;
+        jugar = true;
+        setTimeout(function(){recorrer();},tiempoEnCorrerRecorrer)
+        $(this).text('Reiniciar');
+        $(this).addClass('reiniciar');
+      }
+    });
 
 
   //Se recorren todos los dulces para marcarlos si tienen mas de 3 en linea
@@ -211,9 +211,7 @@ $(function(){
           compararRecursivo ({'tableroTemp': tableroTemp, 'dulce': dulce, 'x': x , 'y':y});
         if (tableroEliminar[xIni + '_' + yIni] != undefined){
           if ((Object.keys(tableroEliminar[xIni + '_' + yIni]).length) >= 3){
-          }else{
-            delete tableroEliminar[xIni + '_' + yIni];
-          }
+          }else delete tableroEliminar[xIni + '_' + yIni];
         }
       }
     }
@@ -221,9 +219,9 @@ $(function(){
     eliminarDivs();
   }
 
-  //
+
+  //Genera nuevamente el tablero (matriz) con los dulces que quedaron despues de eliminar algunos
   function reCrearMatriz(){
-    //console.log()
     var colActual = "";
     var i = 0;
     $('div.dulce').each(function(){
@@ -236,21 +234,8 @@ $(function(){
       tablero[dulce.attr('x')-1][dulce.attr('y')-1] = dulce.attr('valor');
       i++;
     })
-    //console.log(tablero);
     llenarTablero({});
   }
-
-  /*
-  function crearMatrizInicial(){
-    var dulces = [1,2,3,4];
-    for (var x=0; x < nCols; x++){
-      tablero[x] = new Array(nCols);
-      for (var y=0; y < nCols; y++){
-        var azar = Math.floor(Math.random() * (dulces.length)) + 1;
-        tablero[x][y] = azar;
-      }
-    }
-    */
 
 
   //Se compara recursivamente las lineas que formen los dulces de todo la pantalla
@@ -267,6 +252,7 @@ $(function(){
     compararRecursivo({'tableroTemp': pRecParams['tableroTemp'], 'dulce': pRecParams['dulce'], 'x': pRecParams['x'] - 1 , 'y':pRecParams['y']});
     compararRecursivo({'tableroTemp': pRecParams['tableroTemp'], 'dulce': pRecParams['dulce'], 'x': pRecParams['x'] , 'y':pRecParams['y']-1});
   }
+
 
   //Se eliminan los dulces que se obtuvieron en el tableroEliminar
   function eliminarDivs(){
@@ -288,10 +274,7 @@ $(function(){
             $('div.dulce.eliminar').remove();
             //Se llena el tablero con los dulces que quedaron
             reCrearMatriz();
-
-            //console.log("reCrearMatriz en eliminarDivs");
           })
-
           setTimeout(function(){
             //Se visita recursivamente el tableroEliminar para ir marcando los dulces por grupos
             eliminarDivs();
@@ -300,19 +283,10 @@ $(function(){
     }else{
       setTimeout(function(){
         reCrearMatriz();
-        //console.log("reCrearMatriz en eliminarDivs, pero en el else ppal");
       }, fadeOutEliminar)
     }
   }
 
-  //Establecer posiciones de Top y Left en cada dulce según su ubicación
-  /*
-  function rePosicionar(){
-    $('.panel-tablero .dulce').each(function(){
-      $(this).attr({'posLeft': $(this).offset().left, 'posTop': $(this).offset().top})
-    })
-  }
-  */
 
   //Establecer a que fila y columna pertenece cada dulce, se hace cuando hacemos dragDrop
   function reordenar(padres){
@@ -325,10 +299,9 @@ $(function(){
     })
   }
 
+
   //Cuando ya estan creados los dulces, hacer el efecto de lluvia para los dulces NUEVOS
   function lluviaDulces(lluviaParam){
-    //console.log('col: ' + lluviaParam['colInicial'] + ', ' + $('.dulce[nuevos][y="'+lluviaParam['colInicial']+'"]').length)
-    //console.log("en lluvia dulces: con y: " + lluviaParam['filaInicial'] + ", hay " + $('.dulce[nuevos][y="'+lluviaParam['filaInicial']+'"]').length + ' dulces nuevos');
     var duracionCaida = duracionAnimLluvia;
     $('.dulce[nuevos][y="'+lluviaParam['filaInicial']+'"]').each(function(){
       var dulce = $(this).removeAttr('nuevos').show();
@@ -344,10 +317,8 @@ $(function(){
         }
       });
     }).promise().done(function(){
-      //console.log('duracionCaida: ' + duracionCaida);
       setTimeout(function(){
         if (lluviaParam['filaInicial'] < nCols){
-          //console.log('lluviaParam: ' +  lluviaParam['filaInicial']);
           if (lluviaParam['recurrencia']){
             lluviaDulces({'filaInicial': lluviaParam['filaInicial'] + 1,
                           'limiteinf': lluviaParam['limiteinf'] - nDistancia[lluviaParam['filaInicial']],
@@ -359,6 +330,7 @@ $(function(){
     })
   }
 
+
   // Crear dulces en modo Inicio/Reinicio para luego llamar a lluviaDulces() y mostrar el efecto
   function llenarTablero(llenarTableroParam){
     var seCreoDulceAd = false;
@@ -366,20 +338,13 @@ $(function(){
     for (var x=1; x <= nCols; x++){
       for (var y=1; y <= nCols; y++){
         var crearDulce = true;
-        if (tablero[x-1][y-1] == -1 || tablero[x-1][y-1] == null){
+        if (tablero[x-1][y-1] == -1 || tablero[x-1][y-1] == null)
           tablero[x-1][y-1] = Math.floor(Math.random() * (dulces.length)) + 1;
-        }else if(llenarTableroParam['tipo'] != 'inicial'){
-          crearDulce = false;
-          //console.log("Ya existe dulce en " + (x) + '|' + (y));
-        }
+        else if(llenarTableroParam['tipo'] != 'inicial') crearDulce = false;
         if (crearDulce){
           var num = tablero[x-1][y-1];
           var clase = '.col-' + x;
           var colDulce = $(clase);
-          if(llenarTableroParam['tipo'] != 'inicial'){
-            //console.log(tablero);
-            //console.log('<div class="dulce" nuevos x="'+x+'" y="'+y+'" valor="'+num+'"><img src="image/' + num + '.png" /></div>');
-          }
           seCreoDulceAd = true;
           var nuevoDiv = $('<div class="dulce" nuevos x="'+x+'" y="'+y+'" valor="'+num+'"><img src="image/' + num + '.png" /></div>').hide();
           nuevoDiv.css({position: 'absolute', top: 127, left: limiteIzq});
@@ -394,95 +359,24 @@ $(function(){
       $('.col-' + x).attr('x', x);
       limiteIzq += 109;
     }
-    //console.log(llenarTableroParam['tipo']);
-    //console.log($('.dulce[nuevos][x="1"]').length)
     // Llamar al efecto de lluvia de dulces para mostrarlos al usuario
-    if(llenarTableroParam['tipo'] == 'inicial'){
+    if(llenarTableroParam['tipo'] == 'inicial')
       lluviaDulces({'filaInicial': 1, 'limiteinf': 714, 'recurrencia': true});
-    }
     else{
-      //lluviaDulces({'filaInicial': 1, 'limiteinf': 714, 'recurrencia': true});
-      /*
-      duracionAnimLluvia = 1000;
-      for (var i=1; i <= nCols; i++){
-        console.log($('div.dulce[nuevos][y="'+i+'"]').length * duracionAnimLluvia);
-        var limiteInf = 714;
-        for(var i1 = 1; i1 <= i; i1++) limiteInf -= nDistancia[i1];
-        lluviaDulces({'filaInicial': i, 'limiteinf': limiteInf, 'recurrencia': false});
-      }*/
-      //$('div.dulce[nuevos][y="3"]').show().delay(5000).promise().done(function(){});
-
-
+      //Verifica que se haya adicionado al menos un dulce
       if(seCreoDulceAd) {
         tiempoEnCorrerRecorrer = (duracionAnimLluvia * $('.dulce[nuevos]').length) + pulsateEliminar + fadeOutEliminar;
         lluviaDulces({'filaInicial': 1, 'limiteinf': 714, 'recurrencia': true});
-        //console.log("tiempo en correr " + tiempoEnCorrerRecorrer);
         setTimeout(function(){recorrer();},tiempoEnCorrerRecorrer)
-        //recorrer();
-        //console.log('reCrearMatriz');
-        //reCrearMatriz();
       }
     }
   }
 
-  function llenarTableroOriginal(){
-    var limiteIzq = 80;
-    for (var x=1; x <= nCols; x++){
-      var limiteinf = 714;
-      for (var y=1; y <= nCols; y++){
-        var num = tablero[x-1][y-1];
-        var clase = '.col-' + x;
-        //console.log(tablero[0][y-1] + "    khkjh")
-        //console.log(clase);
-        var colDulce = $(clase);
-        var nuevoDiv = $('<div class="dulce" x="'+x+'" y="'+y+'" valor="'+num+'"><img src="image/' + num + '.png" /></div>');
-        //nuevoDiv.css({position: 'relative', top: 0, left: limiteIzq})
-        if (colDulce.find('img').length == 0){
-          nuevoDiv.css({position: 'absolute', top: 0, left: limiteIzq});
-          nuevoDiv.find('img').css({width: '80%'})
-          //colDulce.html('<div class="dulce" x="'+x+'" y="'+y+'" valor="'+num+'"><img src="image/' + num + '.png" /></div>').hide();
-          colDulce.html(nuevoDiv);
-          //console.log(colDulce.find('.dulce[x="'+x+'"][y="'+y+'"]').offset().top);
-          //console.log(colDulce.find('.dulce[x="'+x+'"][y="'+y+'"]').offset().left);
-          nuevoDiv.animate({top:limiteinf + "px"}, 300, function(){
-            $(this).css({position: 'static'});
-          });
-        }
-        else{
-          //alert("sdsa");
-          //nuevoDiv.hide();
-                  //nuevoDiv.offset({ top: 0, left: 30 });
-          if (x==2 && false){
-            nuevoDiv2 = nuevoDiv;
-            $(document.body).append(nuevoDiv2);
-            //nuevoDiv2.css({position: 'absolute', top: 703, left: limiteIzq})
-
-            return false;
-          }
-          limiteinf -= 107;
-          //console.log(limiteinf);
-          colDulce.find("div:first-of-type").before(nuevoDiv);
-          //nuevoDiv.css({position: 'relative', top: 0, left: limiteIzq})
-          //nuevoDiv.animate({top:0 + "px"}, 5000);
-
-          //nuevoDiv.slideDown();
-        }
-        //alert(colDulce);
-
-        //$(clase).insert()
-      }
-      $('.col-' + x).attr('x', x);
-      limiteIzq += 109;
-    }
-    rePosicionar();
-    //console.log(tablero);
-  }
-
+  $('#titulo_score').hide();
   $('#score-text').attr('valor', 0);
   $('#movimientos-text').attr('valor', 0);
   cambiarColorTitulo();
   crearMatrizInicial();
   llenarTablero({'tipo': 'inicial'});
-  //console.log()
   dragDrop();
 })
